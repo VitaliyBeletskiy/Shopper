@@ -15,7 +15,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
         Column {
             Text(
                 text = "Hello Android!",
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
             )
             Button(
                 onClick = {
