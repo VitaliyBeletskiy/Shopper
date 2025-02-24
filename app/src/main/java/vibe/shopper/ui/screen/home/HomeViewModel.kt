@@ -1,8 +1,10 @@
 package vibe.shopper.ui.screen.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,31 +22,43 @@ data class HomeUiState(
     val messageResId: Int? = null,
 )
 
+data class ProductUiState(
+    val product: Product? = null,
+)
+
 @Suppress("ktlint:standard:annotation")
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState>
-        get() = _uiState
+    private var getProductsJob: Job? = null
+
+    private val _homeUiState = MutableStateFlow(HomeUiState())
+    val homeUiState: StateFlow<HomeUiState>
+        get() = _homeUiState
+
+    private val _productUiState = MutableStateFlow(ProductUiState())
+    val productUiState: StateFlow<ProductUiState>
+        get() = _productUiState
 
     init {
         getProducts()
     }
 
     fun getProducts() {
-        viewModelScope.launch {
+        if (getProductsJob?.isActive == true) getProductsJob?.cancel()
+
+        getProductsJob = viewModelScope.launch {
             changeLoadingTo(true)
 
             delay(1_000)
             getProductsUseCase.getProducts().fold(
                 ifSuccess = { products ->
-                    _uiState.update { _uiState.value.copy(products = products) }
+                    _homeUiState.update { _homeUiState.value.copy(products = products) }
                 },
                 ifFailure = { _ ->
-                    _uiState.update { _uiState.value.copy(messageResId = R.string.cannot_get_products) }
+                    _homeUiState.update { _homeUiState.value.copy(messageResId = R.string.cannot_get_products) }
                 },
             )
             changeLoadingTo(false)
@@ -52,10 +66,18 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onMessageShown() {
-        _uiState.update { it.copy(messageResId = null) }
+        _homeUiState.update { it.copy(messageResId = null) }
     }
 
     private fun changeLoadingTo(loading: Boolean) {
-        _uiState.update { _uiState.value.copy(isLoading = loading) }
+        _homeUiState.update { _homeUiState.value.copy(isLoading = loading) }
+    }
+
+    fun onProductClicked(product: Product) {
+        _productUiState.update { _productUiState.value.copy(product = product) }
+    }
+
+    fun addProductToCart(product: Product) {
+        Log.d("vitDebug", "addProductToCart: $product")
     }
 }

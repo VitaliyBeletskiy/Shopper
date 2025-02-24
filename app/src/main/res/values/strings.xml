@@ -3,4 +3,9 @@
     <string name="products">Products</string>
     <string name="cannot_get_products">Something went wrong. Try again later.</string>
     <string name="product_image">Product image</string>
+    <string name="no_product_found">No product found.</string>
+    <string name="material">Material: %s</string>
+    <string name="color">Color: %s</string>
+    <string name="number_of_seats">Number of seats: %s</string>
+    <string name="add_to_cart">Add to cart</string>
 </resources>
