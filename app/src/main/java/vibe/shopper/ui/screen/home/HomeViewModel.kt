@@ -3,6 +3,7 @@ package vibe.shopper.ui.screen.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -33,10 +34,11 @@ class HomeViewModel @Inject constructor(
         getProducts()
     }
 
-    private fun getProducts() {
+    fun getProducts() {
         viewModelScope.launch {
             changeLoadingTo(true)
 
+            delay(1_000)
             getProductsUseCase.getProducts().fold(
                 ifSuccess = { products ->
                     _uiState.update { _uiState.value.copy(products = products) }
@@ -45,7 +47,6 @@ class HomeViewModel @Inject constructor(
                     _uiState.update { _uiState.value.copy(messageResId = R.string.cannot_get_products) }
                 },
             )
-
             changeLoadingTo(false)
         }
     }
