@@ -16,9 +16,9 @@ class GetProductsUseCase @Inject constructor(
     // FIXME: quick-and-dirty patch to display at least some images. For testing purposes only.
     suspend fun getProducts(): Result<List<Product>, Exception> =
         productRepository.getApiProducts().fold(
-            ifSuccess = {
-                // Success(it.products)
-                val products = it.products.map { product ->
+            ifSuccess = { products ->
+                // Success(Function…)
+                val productsWithImages = products.map { product ->
                     val url =
                         "https://www.ikea.com/se/sv/images/products/oestanoe-stol-svart-remmarn-moerkgra__1119282_pe873451_s5.jpg?f=xs"
                     if (product is Chair) {
@@ -27,7 +27,7 @@ class GetProductsUseCase @Inject constructor(
                         product
                     }
                 }
-                Success(products)
+                Success(productsWithImages)
             },
             ifFailure = {
                 Failure(it)

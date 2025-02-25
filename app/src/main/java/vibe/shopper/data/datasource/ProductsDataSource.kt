@@ -11,7 +11,7 @@ import vibe.shopper.data.model.fold
 import javax.inject.Inject
 
 interface ProductsDataSource {
-    suspend fun getProducts(): Result<ApiProducts, Exception>
+    suspend fun getProducts(): Result<List<Product>, Exception>
     suspend fun getProduct(productId: Int): Result<Product, Unit>
 }
 
@@ -24,22 +24,22 @@ class AssetsProductsDataSourceImpl @Inject constructor(
         private const val FILE_NAME = "products.json"
     }
 
-    override suspend fun getProducts(): Result<ApiProducts, Exception> =
+    override suspend fun getProducts(): Result<List<Product>, Exception> =
         try {
             val jsonString = application.assets.open(FILE_NAME).use { inputStream ->
                 inputStream.bufferedReader().use { it.readText() }
             }
             val json = Json { ignoreUnknownKeys = true }
             val apiProducts = json.decodeFromString<ApiProducts>(jsonString)
-            Success(apiProducts)
+            Success(apiProducts.products)
         } catch (e: Exception) {
             Failure(e)
         }
 
     override suspend fun getProduct(productId: Int): Result<Product, Unit> {
         getProducts().fold(
-            ifSuccess = { apiProducts ->
-                apiProducts.products.find { it.id == productId }?.let { return Success(it) }
+            ifSuccess = { products ->
+                products.find { it.id == productId }?.let { return Success(it) }
                 return Failure(Unit)
             },
             ifFailure = {
