@@ -38,4 +38,8 @@ class CartViewModel @Inject constructor(
     fun removeProductFromCart(productId: Int) {
         cartRepository.removeFromCart(productId)
     }
+
+    fun changeProductQuantity(productId: Int, quantity: Int) {
+        cartRepository.changeProductQuantity(productId, quantity)
+    }
 }

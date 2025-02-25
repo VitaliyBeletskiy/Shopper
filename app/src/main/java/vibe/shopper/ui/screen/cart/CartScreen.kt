@@ -77,6 +77,12 @@ fun CartScreen(viewModel: CartViewModel, onNavigateBack: () -> Unit) {
                 totalPrice = uiState.totalPrice,
                 modifier = Modifier.padding(innerPadding),
                 onRemoveCartItem = { productId -> confirmOnRemove.intValue = productId },
+                onProductQuantityChanged = { productId, quantity ->
+                    viewModel.changeProductQuantity(
+                        productId,
+                        quantity,
+                    )
+                },
             )
         }
     }
@@ -88,6 +94,7 @@ private fun CartContent(
     totalPrice: String,
     modifier: Modifier = Modifier,
     onRemoveCartItem: (Int) -> Unit = {},
+    onProductQuantityChanged: (Int, Int) -> Unit,
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
@@ -115,6 +122,7 @@ private fun CartContent(
                         cartItem = cartItem,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         onRemoveCartItem = onRemoveCartItem,
+                        onProductQuantityChanged = onProductQuantityChanged,
                     )
                 }
             }
@@ -160,6 +168,7 @@ private fun CartProductCard(
     cartItem: CartItem,
     modifier: Modifier = Modifier,
     onRemoveCartItem: (Int) -> Unit,
+    onProductQuantityChanged: (Int, Int) -> Unit,
 ) {
     cartItem.product ?: return
     Card(
@@ -188,7 +197,12 @@ private fun CartProductCard(
             Row {
                 QuantityStepper(
                     quantity = cartItem.quantity,
-                    onQuantityChanged = {},
+                    onQuantityChanged = { quantity ->
+                        onProductQuantityChanged(
+                            cartItem.id,
+                            quantity,
+                        )
+                    },
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(
@@ -213,6 +227,7 @@ fun QuantityStepper(
     modifier: Modifier = Modifier,
 ) {
     Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = { if (quantity > 1) onQuantityChanged(quantity - 1) }) {
@@ -275,6 +290,7 @@ fun CartProductCardPreview() {
             ),
         ),
         onRemoveCartItem = {},
+        onProductQuantityChanged = { _, _ -> },
     )
 }
 

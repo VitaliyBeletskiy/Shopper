@@ -1,7 +1,6 @@
 package vibe.shopper.data.datasource
 
 import android.app.Application
-import android.util.Log
 import kotlinx.serialization.json.Json
 import vibe.shopper.data.model.ApiProducts
 import vibe.shopper.data.model.Failure

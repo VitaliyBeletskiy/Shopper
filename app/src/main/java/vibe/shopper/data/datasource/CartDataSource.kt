@@ -18,6 +18,7 @@ class SharedPrefsCartDataSourceImpl @Inject constructor(
     }
 
     override fun saveCart(cart: Map<Int, Int>) {
+        clearSharedPrefs()
         application.getSharedPreferences(APP_SHARED_PREFS, Application.MODE_PRIVATE).edit().apply {
             cart.forEach { (productId, quantity) ->
                 putInt(productId.toString(), quantity)
@@ -32,5 +33,12 @@ class SharedPrefsCartDataSourceImpl @Inject constructor(
         return sharedPreferences.all.map { (productId, quantity) ->
             productId.toInt() to quantity as Int
         }.toMap()
+    }
+
+    private fun clearSharedPrefs() {
+        application.getSharedPreferences(APP_SHARED_PREFS, Application.MODE_PRIVATE).edit().apply {
+            clear()
+            apply()
+        }
     }
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -51,7 +52,7 @@ class HomeViewModel @Inject constructor(
 
         getProductsJob = viewModelScope.launch {
             changeLoadingTo(true)
-
+            delay(1_000) // so we can see the progress indicator
             getProductsUseCase.getProducts().fold(
                 ifSuccess = { products ->
                     _homeUiState.update { _homeUiState.value.copy(products = products) }

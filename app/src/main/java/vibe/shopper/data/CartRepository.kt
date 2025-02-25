@@ -14,6 +14,7 @@ interface CartRepository {
     val cartItems: StateFlow<List<CartItem>>
     fun addToCart(productId: Int)
     fun removeFromCart(productId: Int)
+    fun changeProductQuantity(productId: Int, quantity: Int)
 }
 
 @Suppress("ktlint:standard:annotation")
@@ -73,6 +74,19 @@ class CartRepositoryImpl @Inject constructor(
         idsToQuantity.remove(productId)
         cartDataSource.saveCart(idsToQuantity)
         val updatedCart = _cartItems.value.filter { it.id != productId }
+        _cartItems.update { updatedCart }
+    }
+
+    override fun changeProductQuantity(productId: Int, quantity: Int) {
+        idsToQuantity[productId] = quantity
+        cartDataSource.saveCart(idsToQuantity)
+        val updatedCart = _cartItems.value.map { cartItem ->
+            if (cartItem.id == productId) {
+                cartItem.copy(quantity = quantity)
+            } else {
+                cartItem
+            }
+        }
         _cartItems.update { updatedCart }
     }
 
