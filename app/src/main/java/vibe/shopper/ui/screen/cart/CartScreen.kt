@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -185,13 +184,13 @@ private fun CartProductCard(
                 Text(
                     text = cartItem.product.name,
                     modifier = Modifier.padding(8.dp),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                    style = MaterialTheme.typography.titleLarge,
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "${cartItem.product.price.value} ${cartItem.product.price.currency}",
                     modifier = Modifier.padding(8.dp),
+                    style = MaterialTheme.typography.titleMedium,
                 )
             }
             Row {
@@ -221,7 +220,7 @@ private fun CartProductCard(
 }
 
 @Composable
-fun QuantityStepper(
+private fun QuantityStepper(
     quantity: Int,
     onQuantityChanged: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
@@ -263,13 +262,13 @@ private fun EmptyCartView(modifier: Modifier = Modifier) {
 
 @Preview
 @Composable
-fun ProductNotAvailableCardPreview() {
+private fun ProductNotAvailableCardPreview() {
     ProductNotAvailableCard(productId = 1, onRemoveCartItem = {})
 }
 
 @Preview
 @Composable
-fun CartProductCardPreview() {
+private fun CartProductCardPreview() {
     CartProductCard(
         cartItem = CartItem(
             id = 1,
@@ -296,7 +295,7 @@ fun CartProductCardPreview() {
 
 @Preview
 @Composable
-fun QuantityStepperPreview() {
+private fun QuantityStepperPreview() {
     QuantityStepper(
         quantity = 3,
         onQuantityChanged = {},

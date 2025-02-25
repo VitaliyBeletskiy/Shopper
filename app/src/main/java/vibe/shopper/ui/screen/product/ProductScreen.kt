@@ -2,8 +2,11 @@ package vibe.shopper.ui.screen.product
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
@@ -15,11 +18,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import vibe.shopper.R
 import vibe.shopper.data.model.Chair
+import vibe.shopper.data.model.ChairInfo
 import vibe.shopper.data.model.Couch
+import vibe.shopper.data.model.Price
+import vibe.shopper.data.model.Product
 import vibe.shopper.ui.component.ProductImage
 import vibe.shopper.ui.component.ShopperTopAppBar
 import vibe.shopper.ui.screen.home.HomeViewModel
@@ -53,79 +60,77 @@ fun ProductScreen(
             NoProductFoundWarning(modifier = Modifier.padding(innerPadding))
             return@Scaffold
         }
+        ProductView(product, modifier = Modifier.padding(innerPadding))
+    }
+}
 
+@Composable
+private fun ProductView(
+    product: Product,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+    ) {
+        ProductImage(
+            imageUrl = product.imageUrl,
+            modifier = Modifier.fillMaxWidth(),
+        )
         Column(
-            modifier = Modifier.padding(innerPadding).fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.Start,
         ) {
-            ProductImage(
-                imageUrl = product.imageUrl,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Text(
-                text = product.name,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.Start),
-                style = MaterialTheme.typography.titleLarge,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = product.name,
+                    style = MaterialTheme.typography.headlineLarge,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "${product.price.value} ${product.price.currency}",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
             Text(
                 text = product.type,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .align(Alignment.Start),
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleLarge,
             )
+            Spacer(modifier = Modifier.height(12.dp))
 
             when (product) {
                 is Chair -> {
                     Text(
                         text = stringResource(R.string.color, product.info.color),
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .align(Alignment.Start),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.titleLarge,
                     )
                     Text(
                         text = stringResource(R.string.material, product.info.material),
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .align(Alignment.Start),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.titleLarge,
                     )
                 }
 
                 is Couch -> {
                     Text(
                         text = stringResource(R.string.color, product.info.color),
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .align(Alignment.Start),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.titleLarge,
                     )
                     Text(
                         text = stringResource(R.string.number_of_seats, product.info.numberOfSeats),
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .align(Alignment.Start),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.titleLarge,
                     )
                 }
             }
-
-            Text(
-                text = "${product.price.value} ${product.price.currency}",
-                modifier = Modifier
-                    .padding(8.dp)
-                    .align(Alignment.Start),
-                style = MaterialTheme.typography.bodyLarge,
-            )
         }
     }
 }
 
 @Composable
-fun AddToCartFab(onClick: () -> Unit) {
+private fun AddToCartFab(onClick: () -> Unit) {
     ExtendedFloatingActionButton(
         onClick = { onClick() },
         icon = { },
@@ -134,7 +139,7 @@ fun AddToCartFab(onClick: () -> Unit) {
 }
 
 @Composable
-fun NoProductFoundWarning(modifier: Modifier = Modifier) {
+private fun NoProductFoundWarning(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -142,4 +147,22 @@ fun NoProductFoundWarning(modifier: Modifier = Modifier) {
     ) {
         Text(stringResource(R.string.no_product_found))
     }
+}
+
+@Preview
+@Composable
+private fun ProductViewPreview() {
+    ProductView(
+        product = Chair(
+            id = 1,
+            name = "Henriksdal",
+            price = Price(100.0, "kr"),
+            type = "chair",
+            imageUrl = "https://www.ikea.com/se/sv/images/products/oestanoe-stol-svart-remmarn-moerkgra__1119282_pe873451_s5.jpg?f=xs",
+            info = ChairInfo(
+                material = "wood",
+                color = "black",
+            ),
+        ),
+    )
 }

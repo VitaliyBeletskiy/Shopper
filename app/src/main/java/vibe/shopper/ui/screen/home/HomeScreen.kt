@@ -26,10 +26,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import vibe.shopper.R
+import vibe.shopper.data.model.Chair
+import vibe.shopper.data.model.ChairInfo
+import vibe.shopper.data.model.Price
 import vibe.shopper.data.model.Product
 import vibe.shopper.ui.component.ProductImage
 import vibe.shopper.ui.component.ShopperTopAppBar
@@ -68,7 +71,7 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductList(
+private fun ProductList(
     products: List<Product>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
@@ -82,14 +85,14 @@ fun ProductList(
     ) {
         LazyColumn(Modifier.fillMaxSize()) {
             items(products) { product ->
-                ProductItem(product = product, onProductClicked = onProductClicked)
+                ProductListItem(product = product, onProductClicked = onProductClicked)
             }
         }
     }
 }
 
 @Composable
-fun ProductItem(
+private fun ProductListItem(
     product: Product,
     onProductClicked: (Product) -> Unit,
     modifier: Modifier = Modifier,
@@ -116,10 +119,12 @@ fun ProductItem(
             ) {
                 Text(
                     text = product.name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                    style = MaterialTheme.typography.titleLarge,
                 )
-                Text(text = product.type)
+                Text(
+                    text = product.type,
+                    style = MaterialTheme.typography.titleMedium,
+                )
             }
             Column(
                 modifier = Modifier
@@ -127,8 +132,30 @@ fun ProductItem(
                     .padding(8.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(text = "${product.price.value} ${product.price.currency}")
+                Text(
+                    text = "${product.price.value} ${product.price.currency}",
+                    style = MaterialTheme.typography.titleMedium,
+                )
             }
         }
     }
+}
+
+@Preview
+@Composable
+private fun ProductListItemPreview() {
+    ProductListItem(
+        product = Chair(
+            id = 1,
+            name = "Henriksdal",
+            price = Price(100.0, "kr"),
+            type = "chair",
+            imageUrl = "https://www.ikea.com/se/sv/images/products/oestanoe-stol-svart-remmarn-moerkgra__1119282_pe873451_s5.jpg?f=xs",
+            info = ChairInfo(
+                material = "wood",
+                color = "black",
+            ),
+        ),
+        onProductClicked = {},
+    )
 }

@@ -1,5 +1,6 @@
 package vibe.shopper.data
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,6 +51,9 @@ class CartRepositoryImpl @Inject constructor(
         }
         // it it's new, add it to the cart with quantity 1
         repoScope.launch {
+            idsToQuantity[productId] = 1
+            cartDataSource.saveCart(idsToQuantity)
+
             val newCartItem = productRepository.getProduct(productId).fold(
                 ifSuccess = { product ->
                     CartItem(
