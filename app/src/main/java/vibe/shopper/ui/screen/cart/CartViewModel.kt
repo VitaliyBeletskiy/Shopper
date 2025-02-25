@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 data class CartUiState(
     val cartItems: List<CartItem>,
-    val totalPrice: Double,
+    val totalPrice: String,
 )
 
 @Suppress("ktlint:standard:annotation")
@@ -23,14 +23,19 @@ class CartViewModel @Inject constructor(
 ) : ViewModel() {
 
     val cartUiState: StateFlow<CartUiState> = cartRepository.cartItems.map { cartItems ->
+        val currency = cartItems.firstOrNull()?.product?.price?.currency ?: ""
         val totalPrice = cartItems.sumOf { (it.product?.price?.value ?: 0.0) * it.quantity }
         CartUiState(
             cartItems = cartItems,
-            totalPrice = totalPrice,
+            totalPrice = "$totalPrice $currency",
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = CartUiState(emptyList(), 0.0),
+        initialValue = CartUiState(emptyList(), "0.0"),
     )
+
+    fun removeProductFromCart(productId: Int) {
+        cartRepository.removeFromCart(productId)
+    }
 }

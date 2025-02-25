@@ -20,6 +20,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -35,12 +37,28 @@ import vibe.shopper.data.model.CartItem
 import vibe.shopper.data.model.Chair
 import vibe.shopper.data.model.ChairInfo
 import vibe.shopper.data.model.Price
+import vibe.shopper.ui.component.ConfirmationDialog
 import vibe.shopper.ui.component.ProductImage
 import vibe.shopper.ui.component.ShopperTopAppBar
 
 @Composable
 fun CartScreen(viewModel: CartViewModel, onNavigateBack: () -> Unit) {
     val uiState by viewModel.cartUiState.collectAsStateWithLifecycle()
+    val confirmOnRemove = remember { mutableIntStateOf(-1) }
+
+    when {
+        confirmOnRemove.intValue > 0 -> {
+            ConfirmationDialog(
+                title = stringResource(R.string.remove_item),
+                message = stringResource(R.string.are_you_sure_you_want_to_remove_this_item),
+                onDismissRequest = { confirmOnRemove.intValue = -1 },
+                onConfirm = {
+                    viewModel.removeProductFromCart(confirmOnRemove.intValue)
+                    confirmOnRemove.intValue = -1
+                },
+            )
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -58,6 +76,7 @@ fun CartScreen(viewModel: CartViewModel, onNavigateBack: () -> Unit) {
                 cartItems = uiState.cartItems,
                 totalPrice = uiState.totalPrice,
                 modifier = Modifier.padding(innerPadding),
+                onRemoveCartItem = { productId -> confirmOnRemove.intValue = productId },
             )
         }
     }
@@ -66,18 +85,20 @@ fun CartScreen(viewModel: CartViewModel, onNavigateBack: () -> Unit) {
 @Composable
 private fun CartContent(
     cartItems: List<CartItem>,
-    totalPrice: Double,
+    totalPrice: String,
     modifier: Modifier = Modifier,
+    onRemoveCartItem: (Int) -> Unit = {},
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
     ) {
         Text(
-            text = stringResource(R.string.total_price, totalPrice.toString()),
+            text = stringResource(R.string.total_price, totalPrice),
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
             textAlign = TextAlign.End,
+            style = MaterialTheme.typography.titleLarge,
         )
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -87,11 +108,13 @@ private fun CartContent(
                     ProductNotAvailableCard(
                         productId = cartItem.id,
                         modifier = Modifier.padding(horizontal = 16.dp),
+                        onRemoveCartItem = onRemoveCartItem,
                     )
                 } else {
                     CartProductCard(
                         cartItem = cartItem,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        onRemoveCartItem = onRemoveCartItem,
                     )
                 }
             }
@@ -100,7 +123,11 @@ private fun CartContent(
 }
 
 @Composable
-private fun ProductNotAvailableCard(productId: Int, modifier: Modifier = Modifier) {
+private fun ProductNotAvailableCard(
+    productId: Int,
+    modifier: Modifier = Modifier,
+    onRemoveCartItem: (Int) -> Unit,
+) {
     Card(
         modifier = modifier.fillMaxWidth(),
     ) {
@@ -114,7 +141,11 @@ private fun ProductNotAvailableCard(productId: Int, modifier: Modifier = Modifie
                     .padding(16.dp)
                     .weight(1f),
             )
-            IconButton(onClick = {}) {
+            IconButton(
+                onClick = {
+                    onRemoveCartItem(productId)
+                },
+            ) {
                 Icon(
                     imageVector = Icons.Outlined.Delete,
                     contentDescription = stringResource(R.string.remove_from_cart),
@@ -128,6 +159,7 @@ private fun ProductNotAvailableCard(productId: Int, modifier: Modifier = Modifie
 private fun CartProductCard(
     cartItem: CartItem,
     modifier: Modifier = Modifier,
+    onRemoveCartItem: (Int) -> Unit,
 ) {
     cartItem.product ?: return
     Card(
@@ -143,11 +175,15 @@ private fun CartProductCard(
                 )
                 Text(
                     text = cartItem.product.name,
+                    modifier = Modifier.padding(8.dp),
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "${cartItem.product.price.value} ${cartItem.product.price.currency}")
+                Text(
+                    text = "${cartItem.product.price.value} ${cartItem.product.price.currency}",
+                    modifier = Modifier.padding(8.dp),
+                )
             }
             Row {
                 QuantityStepper(
@@ -155,7 +191,11 @@ private fun CartProductCard(
                     onQuantityChanged = {},
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = {}) {
+                IconButton(
+                    onClick = {
+                        onRemoveCartItem(cartItem.id)
+                    },
+                ) {
                     Icon(
                         imageVector = Icons.Outlined.Delete,
                         contentDescription = stringResource(R.string.remove_from_cart),
@@ -209,7 +249,7 @@ private fun EmptyCartView(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 fun ProductNotAvailableCardPreview() {
-    ProductNotAvailableCard(productId = 1)
+    ProductNotAvailableCard(productId = 1, onRemoveCartItem = {})
 }
 
 @Preview
@@ -234,6 +274,7 @@ fun CartProductCardPreview() {
                 ),
             ),
         ),
+        onRemoveCartItem = {},
     )
 }
 

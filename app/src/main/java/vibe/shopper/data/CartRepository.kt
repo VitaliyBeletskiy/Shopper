@@ -13,6 +13,7 @@ import javax.inject.Inject
 interface CartRepository {
     val cartItems: StateFlow<List<CartItem>>
     fun addToCart(productId: Int)
+    fun removeFromCart(productId: Int)
 }
 
 @Suppress("ktlint:standard:annotation")
@@ -66,6 +67,13 @@ class CartRepositoryImpl @Inject constructor(
             )
             _cartItems.value += newCartItem
         }
+    }
+
+    override fun removeFromCart(productId: Int) {
+        idsToQuantity.remove(productId)
+        cartDataSource.saveCart(idsToQuantity)
+        val updatedCart = _cartItems.value.filter { it.id != productId }
+        _cartItems.update { updatedCart }
     }
 
     private fun getCart() {
