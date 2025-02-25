@@ -1,5 +1,6 @@
 package vibe.shopper.ui.component
 
+import android.util.Log
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,6 +17,7 @@ fun ProductImage(
     placeholderResId: Int = R.drawable.ic_loading_img,
     errorResId: Int = R.drawable.ic_broken_image,
 ) {
+    Log.d("vitDebug", "ProductImage: $imageUrl")
     AsyncImage(
         model = imageUrl,
         contentDescription = stringResource(R.string.product_image),

@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import vibe.shopper.ui.screen.cart.CartScreen
+import vibe.shopper.ui.screen.cart.CartViewModel
 import vibe.shopper.ui.screen.home.HomeScreen
 import vibe.shopper.ui.screen.home.HomeViewModel
 import vibe.shopper.ui.screen.product.ProductScreen
@@ -43,7 +44,11 @@ fun ShopperApp() {
             )
         }
         composable(Screen.Cart.route) {
-            CartScreen()
+            val cartViewModel = hiltViewModel<CartViewModel>()
+            CartScreen(
+                viewModel = cartViewModel,
+                onNavigateBack = { navController.popBackStack() },
+            )
         }
     }
 }

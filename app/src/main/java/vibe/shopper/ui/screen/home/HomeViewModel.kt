@@ -1,11 +1,9 @@
 package vibe.shopper.ui.screen.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -13,6 +11,7 @@ import kotlinx.coroutines.launch
 import vibe.shopper.R
 import vibe.shopper.data.model.Product
 import vibe.shopper.data.model.fold
+import vibe.shopper.domain.AddToCartUseCase
 import vibe.shopper.domain.GetProductsUseCase
 import javax.inject.Inject
 
@@ -30,6 +29,7 @@ data class ProductUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
+    private val addToCartUseCase: AddToCartUseCase,
 ) : ViewModel() {
 
     private var getProductsJob: Job? = null
@@ -52,7 +52,6 @@ class HomeViewModel @Inject constructor(
         getProductsJob = viewModelScope.launch {
             changeLoadingTo(true)
 
-            delay(1_000)
             getProductsUseCase.getProducts().fold(
                 ifSuccess = { products ->
                     _homeUiState.update { _homeUiState.value.copy(products = products) }
@@ -77,7 +76,7 @@ class HomeViewModel @Inject constructor(
         _productUiState.update { _productUiState.value.copy(product = product) }
     }
 
-    fun addProductToCart(product: Product) {
-        Log.d("vitDebug", "addProductToCart: $product")
+    fun addProductToCart(productId: Int) {
+        addToCartUseCase.addToCart(productId)
     }
 }

@@ -1,21 +1,25 @@
-package vibe.shopper.data.assets
+package vibe.shopper.data.datasource
 
 import android.app.Application
+import android.util.Log
 import kotlinx.serialization.json.Json
 import vibe.shopper.data.model.ApiProducts
 import vibe.shopper.data.model.Failure
+import vibe.shopper.data.model.Product
 import vibe.shopper.data.model.Result
 import vibe.shopper.data.model.Success
+import vibe.shopper.data.model.fold
 import javax.inject.Inject
 
-interface AssetsDataSource {
+interface ProductsDataSource {
     suspend fun getProducts(): Result<ApiProducts, Exception>
+    suspend fun getProduct(productId: Int): Result<Product, Unit>
 }
 
 @Suppress("ktlint:standard:annotation")
-class AssetsDataSourceImpl @Inject constructor(
+class AssetsProductsDataSourceImpl @Inject constructor(
     private val application: Application,
-) : AssetsDataSource {
+) : ProductsDataSource {
 
     companion object {
         private const val FILE_NAME = "products.json"
@@ -32,4 +36,16 @@ class AssetsDataSourceImpl @Inject constructor(
         } catch (e: Exception) {
             Failure(e)
         }
+
+    override suspend fun getProduct(productId: Int): Result<Product, Unit> {
+        getProducts().fold(
+            ifSuccess = { apiProducts ->
+                apiProducts.products.find { it.id == productId }?.let { return Success(it) }
+                return Failure(Unit)
+            },
+            ifFailure = {
+                return Failure(Unit)
+            },
+        )
+    }
 }

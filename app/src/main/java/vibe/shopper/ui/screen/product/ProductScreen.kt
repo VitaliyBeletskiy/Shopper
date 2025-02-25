@@ -42,7 +42,7 @@ fun ProductScreen(
         floatingActionButton = {
             uiState.product?.let { product ->
                 AddToCartFab {
-                    viewModel.addProductToCart(product)
+                    viewModel.addProductToCart(product.id)
                 }
             }
         },

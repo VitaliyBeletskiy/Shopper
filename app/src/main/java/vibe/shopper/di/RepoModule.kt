@@ -4,10 +4,14 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import vibe.shopper.data.CartRepository
+import vibe.shopper.data.CartRepositoryImpl
 import vibe.shopper.data.ProductRepository
 import vibe.shopper.data.ProductRepositoryImpl
-import vibe.shopper.data.assets.AssetsDataSource
-import vibe.shopper.data.assets.AssetsDataSourceImpl
+import vibe.shopper.data.datasource.ProductsDataSource
+import vibe.shopper.data.datasource.AssetsProductsDataSourceImpl
+import vibe.shopper.data.datasource.CartDataSource
+import vibe.shopper.data.datasource.SharedPrefsCartDataSourceImpl
 import javax.inject.Singleton
 
 @Module
@@ -23,6 +27,18 @@ abstract class RepoModule {
     @Binds
     @Singleton
     abstract fun bindAssetsDataSource(
-        assetsDataSourceImpl: AssetsDataSourceImpl,
-    ): AssetsDataSource
+        assetsProductsDataSourceImpl: AssetsProductsDataSourceImpl,
+    ): ProductsDataSource
+
+    @Binds
+    @Singleton
+    abstract fun bindCartRepository(
+        cartRepositoryImpl: CartRepositoryImpl,
+    ): CartRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSharedPrefsDataSource(
+        sharedPrefsDataSourceImpl: SharedPrefsCartDataSourceImpl,
+    ): CartDataSource
 }
