@@ -1,8 +1,10 @@
 package vibe.shopper.data
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import vibe.shopper.data.datasource.CartDataSource
@@ -12,6 +14,7 @@ import javax.inject.Inject
 
 interface CartRepository {
     val cartItems: StateFlow<List<CartItem>>
+    val cartItemCount: Flow<Int>
     fun addToCart(productId: Int)
     fun removeFromCart(productId: Int)
     fun changeProductQuantity(productId: Int, quantity: Int)
@@ -28,6 +31,8 @@ class CartRepositoryImpl @Inject constructor(
 
     private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
     override val cartItems: StateFlow<List<CartItem>> get() = _cartItems
+    override val cartItemCount: Flow<Int> = _cartItems
+        .map { cartItems -> cartItems.sumOf { it.quantity } }
 
     init {
         getCart()

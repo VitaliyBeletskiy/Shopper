@@ -1,9 +1,12 @@
 package vibe.shopper.ui.component
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,6 +24,7 @@ import vibe.shopper.R
 fun ShopperTopAppBar(
     modifier: Modifier = Modifier,
     titleText: String? = null,
+    cartItemCount: Int = 0,
     onNavigateBack: (() -> Unit)? = null,
     onCartClick: (() -> Unit)? = null,
     onSearchClick: (() -> Unit)? = null,
@@ -50,13 +54,35 @@ fun ShopperTopAppBar(
                 }
             }
             onCartClick?.let {
-                IconButton(onClick = it) {
-                    Icon(
-                        imageVector = Icons.Filled.ShoppingCart,
-                        contentDescription = stringResource(R.string.cart),
-                    )
-                }
+                CartIconButton(
+                    onClick = it,
+                    cartItemCount = cartItemCount,
+                    modifier = Modifier.padding(end = 8.dp),
+                )
             }
         },
     )
+}
+
+@Composable
+private fun CartIconButton(
+    onClick: () -> Unit,
+    cartItemCount: Int = 0,
+    modifier: Modifier = Modifier,
+) {
+    BadgedBox(
+        modifier = modifier,
+        badge = {
+            if (cartItemCount > 0) {
+                Badge { Text(cartItemCount.toString()) }
+            }
+        },
+    ) {
+        IconButton(onClick = onClick) {
+            Icon(
+                imageVector = Icons.Filled.ShoppingCart,
+                contentDescription = stringResource(R.string.cart),
+            )
+        }
+    }
 }

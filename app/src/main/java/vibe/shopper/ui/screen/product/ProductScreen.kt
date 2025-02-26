@@ -42,6 +42,7 @@ fun ProductScreen(
     Scaffold(
         topBar = {
             ShopperTopAppBar(
+                cartItemCount = uiState.cartItemCount,
                 onNavigateBack = onNavigateBack,
                 onCartClick = onNavigateToCart,
             )

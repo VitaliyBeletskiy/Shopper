@@ -1,13 +1,17 @@
 package vibe.shopper.data
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import vibe.shopper.data.model.CartItem
 
 class FakeCartRepository : CartRepository {
 
     private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
     override val cartItems: StateFlow<List<CartItem>> get() = _cartItems
+    override val cartItemCount: Flow<Int> = _cartItems
+        .map { cartItems -> cartItems.sumOf { it.quantity } }
 
     private val cartMap = mutableMapOf<Int, CartItem>()
 

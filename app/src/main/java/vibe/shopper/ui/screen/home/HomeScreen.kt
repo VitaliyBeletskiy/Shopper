@@ -77,6 +77,7 @@ fun HomeScreen(
         topBar = {
             ShopperTopAppBar(
                 titleText = stringResource(R.string.products),
+                cartItemCount = uiState.cartItemCount,
                 onCartClick = onNavigateToCart,
                 onSearchClick = { isSearchActive = true },
             )

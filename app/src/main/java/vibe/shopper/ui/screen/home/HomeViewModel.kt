@@ -6,13 +6,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import vibe.shopper.R
 import vibe.shopper.data.model.Product
 import vibe.shopper.data.model.fold
 import vibe.shopper.domain.AddToCartUseCase
+import vibe.shopper.domain.GetCartItemCountUseCase
 import vibe.shopper.domain.GetProductsUseCase
 import javax.inject.Inject
 
@@ -21,10 +25,12 @@ data class HomeUiState(
     val products: List<Product> = emptyList(),
     val messageResId: Int? = null,
     val searchQuery: String? = null,
+    val cartItemCount: Int = 0,
 )
 
 data class ProductUiState(
     val product: Product? = null,
+    val cartItemCount: Int = 0,
 )
 
 @Suppress("ktlint:standard:annotation")
@@ -32,17 +38,37 @@ data class ProductUiState(
 class HomeViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
     private val addToCartUseCase: AddToCartUseCase,
+    private val getCartItemCountUseCase: GetCartItemCountUseCase,
 ) : ViewModel() {
 
     private var getProductsJob: Job? = null
 
+    private val cartItemCountFlow = getCartItemCountUseCase.getCount()
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
     private val _homeUiState = MutableStateFlow(HomeUiState())
-    val homeUiState: StateFlow<HomeUiState>
-        get() = _homeUiState
-
     private val _productUiState = MutableStateFlow(ProductUiState())
-    val productUiState: StateFlow<ProductUiState>
-        get() = _productUiState
+
+    val homeUiState: StateFlow<HomeUiState> = combine(
+        _homeUiState,
+        cartItemCountFlow,
+    ) { uiState, cartItemCount ->
+        uiState.copy(cartItemCount = cartItemCount)
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        HomeUiState(),
+    )
+
+    val productUiState: StateFlow<ProductUiState> = combine(
+        _productUiState,
+        cartItemCountFlow,
+    ) { uiState, cartItemCount ->
+        uiState.copy(cartItemCount = cartItemCount)
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        ProductUiState(),
+    )
 
     init {
         getProducts()
