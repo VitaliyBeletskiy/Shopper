@@ -20,6 +20,7 @@ data class HomeUiState(
     val isLoading: Boolean = false,
     val products: List<Product> = emptyList(),
     val messageResId: Int? = null,
+    val searchQuery: String? = null,
 )
 
 data class ProductUiState(
@@ -47,15 +48,20 @@ class HomeViewModel @Inject constructor(
         getProducts()
     }
 
-    fun getProducts() {
+    fun getProducts(query: String? = null) {
         if (getProductsJob?.isActive == true) getProductsJob?.cancel()
 
         getProductsJob = viewModelScope.launch {
             changeLoadingTo(true)
-            delay(1_000) // so we can see the progress indicator
-            getProductsUseCase.getProducts().fold(
+            delay(500) // FIXME: so we can see the progress indicator
+            getProductsUseCase.getProducts(query).fold(
                 ifSuccess = { products ->
-                    _homeUiState.update { _homeUiState.value.copy(products = products) }
+                    _homeUiState.update {
+                        _homeUiState.value.copy(
+                            products = products,
+                            searchQuery = query,
+                        )
+                    }
                 },
                 ifFailure = { _ ->
                     _homeUiState.update { _homeUiState.value.copy(messageResId = R.string.cannot_get_products) }
@@ -79,5 +85,9 @@ class HomeViewModel @Inject constructor(
 
     fun addProductToCart(productId: Int) {
         addToCartUseCase.addToCart(productId)
+    }
+
+    fun refreshProducts() {
+        getProducts(query = _homeUiState.value.searchQuery)
     }
 }

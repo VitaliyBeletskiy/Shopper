@@ -16,4 +16,8 @@
     <string name="cancel">Cancel</string>
     <string name="remove_item">Remove item?</string>
     <string name="are_you_sure_you_want_to_remove_this_item">Are you sure you want to remove this item?</string>
+    <string name="cart">Cart</string>
+    <string name="search">Search</string>"
+    <string name="search_results_for">Search results for: %s</string>"
+    <string name="clear">Clear</string>"
 </resources>

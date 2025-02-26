@@ -6,7 +6,7 @@ import vibe.shopper.data.model.Result
 import javax.inject.Inject
 
 interface ProductRepository {
-    suspend fun getApiProducts(): Result<List<Product>, Exception>
+    suspend fun getApiProducts(query: String?): Result<List<Product>, Exception>
     suspend fun getProduct(productId: Int): Result<Product, Unit>
 }
 
@@ -15,8 +15,8 @@ class ProductRepositoryImpl @Inject constructor(
     private val productsDataSource: ProductsDataSource,
 ) : ProductRepository {
 
-    override suspend fun getApiProducts(): Result<List<Product>, Exception> =
-        productsDataSource.getProducts()
+    override suspend fun getApiProducts(query: String?): Result<List<Product>, Exception> =
+        productsDataSource.getProducts(query)
 
     override suspend fun getProduct(productId: Int): Result<Product, Unit> =
         productsDataSource.getProduct(productId)

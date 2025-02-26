@@ -256,7 +256,10 @@ private fun EmptyCartView(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(text = stringResource(R.string.cart_is_empty))
+        Text(
+            text = stringResource(R.string.cart_is_empty),
+            style = MaterialTheme.typography.titleLarge,
+        )
     }
 }
 
