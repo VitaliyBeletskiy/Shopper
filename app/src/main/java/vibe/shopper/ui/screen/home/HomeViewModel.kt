@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -49,30 +50,26 @@ class HomeViewModel @Inject constructor(
     private val _productUiState = MutableStateFlow(ProductUiState())
 
     val homeUiState: StateFlow<HomeUiState> = combine(
-        _homeUiState,
-        cartItemCountFlow,
+        _homeUiState.onStart { emit(HomeUiState()) },
+        cartItemCountFlow.onStart { emit(0) },
     ) { uiState, cartItemCount ->
         uiState.copy(cartItemCount = cartItemCount)
     }.stateIn(
         viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
+        SharingStarted.WhileSubscribed(5_000),
         HomeUiState(),
     )
 
     val productUiState: StateFlow<ProductUiState> = combine(
-        _productUiState,
-        cartItemCountFlow,
+        _productUiState.onStart { emit(ProductUiState()) },
+        cartItemCountFlow.onStart { emit(0) },
     ) { uiState, cartItemCount ->
         uiState.copy(cartItemCount = cartItemCount)
     }.stateIn(
         viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
+        SharingStarted.WhileSubscribed(5_000),
         ProductUiState(),
     )
-
-    init {
-        getProducts()
-    }
 
     fun getProducts(query: String? = null) {
         if (getProductsJob?.isActive == true) getProductsJob?.cancel()

@@ -1,20 +1,26 @@
 package vibe.shopper.ui.screen.home
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import app.cash.turbine.test
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
-import org.mockito.kotlin.mock
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.whenever
 import vibe.shopper.data.model.Chair
 import vibe.shopper.data.model.ChairInfo
 import vibe.shopper.data.model.Couch
@@ -23,6 +29,7 @@ import vibe.shopper.data.model.Failure
 import vibe.shopper.data.model.Price
 import vibe.shopper.data.model.Success
 import vibe.shopper.domain.AddToCartUseCase
+import vibe.shopper.domain.GetCartItemCountUseCase
 import vibe.shopper.domain.GetProductsUseCase
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,13 +41,23 @@ class HomeViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private lateinit var homeViewModel: HomeViewModel
-    private val getProductsUseCase: GetProductsUseCase = mock()
-    private val addToCartUseCase: AddToCartUseCase = mock()
+    private lateinit var getProductsUseCase: GetProductsUseCase
+    private lateinit var addToCartUseCase: AddToCartUseCase
+    private lateinit var getCartItemCountUseCase: GetCartItemCountUseCase
+
+    private val cartItemCountFlow = MutableStateFlow(0)
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        homeViewModel = HomeViewModel(getProductsUseCase, addToCartUseCase)
+
+        getProductsUseCase = Mockito.mock(GetProductsUseCase::class.java)
+        addToCartUseCase = Mockito.mock(AddToCartUseCase::class.java)
+        getCartItemCountUseCase = Mockito.mock(GetCartItemCountUseCase::class.java)
+
+        whenever(getCartItemCountUseCase.getCount()).thenReturn(cartItemCountFlow)
+
+        homeViewModel = HomeViewModel(getProductsUseCase, addToCartUseCase, getCartItemCountUseCase)
     }
 
     @After
@@ -51,33 +68,43 @@ class HomeViewModelTest {
     @Test
     fun `getProducts() - success updates UI state with products`() = runTest {
         val products = fakeProducts()
-        `when`(getProductsUseCase.getProducts()).thenReturn(Success(products))
 
-        homeViewModel.getProducts()
-        advanceUntilIdle() // Ensures coroutine execution completes
+        whenever(getProductsUseCase.getProducts(anyOrNull())).thenReturn(Success(products))
 
-        val state = homeViewModel.homeUiState.value
-        assert(state.products == products) { "Expected products to be $products but was ${state.products}" }
-        assert(!state.isLoading) { "Expected isLoading to be false but was ${state.isLoading}" }
+        homeViewModel.getProducts() // ✅ Trigger function
+
+        homeViewModel.homeUiState.test {
+            awaitItem()
+            awaitItem()
+            val homeUiState = awaitItem()
+
+            assertTrue(homeUiState.isLoading.not())
+            assertEquals(products, homeUiState.products)
+
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test
     fun `getProducts() - failure updates UI state with error message`() = runTest {
-        `when`(getProductsUseCase.getProducts()).thenReturn(Failure(Exception()))
+        whenever(getProductsUseCase.getProducts(anyOrNull())).thenReturn(Failure(Exception()))
 
         homeViewModel.getProducts()
-        advanceUntilIdle()
 
-        val state = homeViewModel.homeUiState.value
-        assert(state.messageResId != null) { "Expected error message but got ${state.messageResId}" }
-        assert(!state.isLoading) { "Expected isLoading to be false but was ${state.isLoading}" }
+        homeViewModel.homeUiState.test {
+            awaitItem()
+            awaitItem()
+            val homeUiState = awaitItem()
+
+            assertTrue(homeUiState.isLoading.not())
+            assertNotNull(homeUiState.messageResId)
+
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test
     fun `onMessageShown() - clears error message`() = runTest {
-        // have to keep it here as getProducts() is called in init block
-        `when`(getProductsUseCase.getProducts()).thenReturn(Success(fakeProducts()))
-
         homeViewModel.onMessageShown()
         val state = homeViewModel.homeUiState.value
         assert(state.messageResId == null) { "Expected messageResId to be null but was ${state.messageResId}" }
@@ -85,23 +112,47 @@ class HomeViewModelTest {
 
     @Test
     fun `onProductClicked() - updates selected product`() = runTest {
-        // have to keep it here as getProducts() is called in init block
-        `when`(getProductsUseCase.getProducts()).thenReturn(Success(fakeProducts()))
-
         val product = fakeProducts().first()
         homeViewModel.onProductClicked(product)
-        val state = homeViewModel.productUiState.value
-        assert(state.product == product) { "Expected selected product to be $product but was ${state.product}" }
+
+        homeViewModel.productUiState.test {
+            awaitItem()
+            val productUiState = awaitItem()
+
+            assert(productUiState.product == product) { "Expected selected product to be $product but was ${productUiState.product}" }
+
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test
     fun `addProductToCart() - calls addToCartUseCase`() = runTest {
-        // have to keep it here as getProducts() is called in init block
-        `when`(getProductsUseCase.getProducts()).thenReturn(Success(fakeProducts()))
-
         val productId = 1
         homeViewModel.addProductToCart(productId)
         verify(addToCartUseCase).addToCart(productId)
+    }
+
+    @Test
+    fun `getProducts(query) - success updates UI state with filtered products!!!`() = runTest {
+        val query = "Henriksdal"
+        val products = fakeProducts()
+        val filteredProducts = products.filter { it.name.contains(query, ignoreCase = true) }
+
+        whenever(getProductsUseCase.getProducts(query)).thenReturn(Success(filteredProducts))
+
+        homeViewModel.getProducts(query)
+
+        homeViewModel.homeUiState.test {
+            awaitItem()
+            awaitItem()
+            val homeUiState = awaitItem()
+
+            assertEquals(filteredProducts, homeUiState.products)
+            assertEquals(query, homeUiState.searchQuery)
+            assertFalse(homeUiState.isLoading)
+
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test
@@ -110,27 +161,39 @@ class HomeViewModelTest {
         val products = fakeProducts()
         val filteredProducts = products.filter { it.name.contains(query, ignoreCase = true) }
 
-        `when`(getProductsUseCase.getProducts(query)).thenReturn(Success(filteredProducts))
+        whenever(getProductsUseCase.getProducts(query)).thenReturn(Success(filteredProducts))
 
         homeViewModel.getProducts(query)
-        advanceUntilIdle()
 
-        val state = homeViewModel.homeUiState.value
-        assert(state.products == filteredProducts) { "Expected products to be $filteredProducts but was ${state.products}" }
-        assert(state.searchQuery == query) { "Expected searchQuery to be $query but was ${state.searchQuery}" }
-        assert(!state.isLoading) { "Expected isLoading to be false but was ${state.isLoading}" }
+        homeViewModel.homeUiState.test {
+            awaitItem()
+            awaitItem()
+            val homeUiState = awaitItem()
+
+            assertEquals(filteredProducts, homeUiState.products)
+            assertEquals(query, homeUiState.searchQuery)
+            assertFalse(homeUiState.isLoading)
+
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test
     fun `changeLoadingTo() - isLoading changes to true then to false while getting products`() = runTest {
-        `when`(getProductsUseCase.getProducts()).thenReturn(Failure(Exception()))
+        whenever(getProductsUseCase.getProducts(anyOrNull())).thenReturn(Failure(Exception()))
 
         homeViewModel.getProducts()
-        assert(homeViewModel.homeUiState.value.isLoading) { "Expected isLoading to be true but was false" }
 
-        advanceUntilIdle()
+        homeViewModel.homeUiState.test {
+            awaitItem()
+            val loadingState = awaitItem()
+            val notLoadingState = awaitItem()
 
-        assert(!homeViewModel.homeUiState.value.isLoading) { "Expected isLoading to be false but was true" }
+            assertTrue(loadingState.isLoading)
+            assertFalse(notLoadingState.isLoading)
+
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     private fun fakeProducts() = listOf(

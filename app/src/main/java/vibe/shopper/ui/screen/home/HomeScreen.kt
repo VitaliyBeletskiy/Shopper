@@ -35,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +68,14 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.homeUiState.collectAsStateWithLifecycle()
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
+
+    var hasGotProducts by rememberSaveable { mutableStateOf(false) }
+    if (!hasGotProducts) {
+        hasGotProducts = true
+        LaunchedEffect(Unit) {
+            viewModel.getProducts()
+        }
+    }
 
     uiState.messageResId?.let { resId ->
         Toast.makeText(LocalContext.current, stringResource(resId), Toast.LENGTH_SHORT).show()
