@@ -18,7 +18,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "vibe.shopper.util.ShopperTestRunner"
     }
 
     buildTypes {
@@ -60,6 +60,10 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+    // Hilt Test
+    androidTestImplementation(libs.hilt.android)
+    kspAndroidTest(libs.hilt.android.compiler)
+    androidTestImplementation(libs.hilt.android.testing)
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
@@ -68,6 +72,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
+    implementation(libs.androidx.junit.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -78,13 +83,19 @@ dependencies {
 
     testImplementation(libs.androidx.core.testing)
 
-    // Mockito
+    // Mockito for unit tests
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
+    // Mockito for Android instrumentation tests
+    androidTestImplementation(libs.mockito.android)
+    androidTestImplementation(libs.mockito.kotlin)
 
     // Kotlin Coroutines Test
     testImplementation(libs.kotlinx.coroutines.test)
 
     // Turbine
     testImplementation(libs.turbine)
+
+    // Navigation
+    androidTestImplementation(libs.androidx.navigation.testing)
 }

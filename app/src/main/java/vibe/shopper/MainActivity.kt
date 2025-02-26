@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
 import vibe.shopper.ui.ShopperApp
-import vibe.shopper.ui.theme.ShopperTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -14,9 +13,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ShopperTheme {
-                ShopperApp()
-            }
+            ShopperApp()
         }
     }
 }

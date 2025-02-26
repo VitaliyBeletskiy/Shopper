@@ -99,7 +99,7 @@ private fun CartContent(
         modifier = modifier.fillMaxSize(),
     ) {
         Text(
-            text = stringResource(R.string.total_price, totalPrice),
+            text = stringResource(R.string.total_amount, totalPrice),
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),

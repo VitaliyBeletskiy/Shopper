@@ -9,7 +9,7 @@
     <string name="number_of_seats">Number of seats: %s</string>
     <string name="add_to_cart">Add to cart</string>
     <string name="cart_is_empty">Your cart is empty</string>
-    <string name="total_price">Total price: %s</string>
+    <string name="total_amount">Total amount: %s</string>
     <string name="product_not_available">Product is not available</string>
     <string name="remove_from_cart">Remove from cart</string>
     <string name="yes">Yes</string>
@@ -20,4 +20,5 @@
     <string name="search">Search</string>"
     <string name="search_results_for">Search results for: %s</string>"
     <string name="clear">Clear</string>"
+    <string name="back">Back</string>"
 </resources>

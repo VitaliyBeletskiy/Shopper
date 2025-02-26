@@ -2,6 +2,7 @@ package vibe.shopper.ui
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -10,6 +11,7 @@ import vibe.shopper.ui.screen.cart.CartViewModel
 import vibe.shopper.ui.screen.home.HomeScreen
 import vibe.shopper.ui.screen.home.HomeViewModel
 import vibe.shopper.ui.screen.product.ProductScreen
+import vibe.shopper.ui.theme.ShopperTheme
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -19,7 +21,13 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun ShopperApp() {
-    val navController = rememberNavController()
+    ShopperTheme {
+        ShopperNavigation()
+    }
+}
+
+@Composable
+fun ShopperNavigation(navController: NavHostController = rememberNavController()) {
     val homeViewModel = hiltViewModel<HomeViewModel>()
 
     NavHost(

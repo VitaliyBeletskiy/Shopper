@@ -95,13 +95,42 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `addProductToCart() - calls use case`() = runTest {
+    fun `addProductToCart() - calls addToCartUseCase`() = runTest {
         // have to keep it here as getProducts() is called in init block
         `when`(getProductsUseCase.getProducts()).thenReturn(Success(fakeProducts()))
 
         val productId = 1
         homeViewModel.addProductToCart(productId)
         verify(addToCartUseCase).addToCart(productId)
+    }
+
+    @Test
+    fun `getProducts(query) - success updates UI state with filtered products`() = runTest {
+        val query = "Henriksdal"
+        val products = fakeProducts()
+        val filteredProducts = products.filter { it.name.contains(query, ignoreCase = true) }
+
+        `when`(getProductsUseCase.getProducts(query)).thenReturn(Success(filteredProducts))
+
+        homeViewModel.getProducts(query)
+        advanceUntilIdle()
+
+        val state = homeViewModel.homeUiState.value
+        assert(state.products == filteredProducts) { "Expected products to be $filteredProducts but was ${state.products}" }
+        assert(state.searchQuery == query) { "Expected searchQuery to be $query but was ${state.searchQuery}" }
+        assert(!state.isLoading) { "Expected isLoading to be false but was ${state.isLoading}" }
+    }
+
+    @Test
+    fun `changeLoadingTo() - isLoading changes to true then to false while getting products`() = runTest {
+        `when`(getProductsUseCase.getProducts()).thenReturn(Failure(Exception()))
+
+        homeViewModel.getProducts()
+        assert(homeViewModel.homeUiState.value.isLoading) { "Expected isLoading to be true but was false" }
+
+        advanceUntilIdle()
+
+        assert(!homeViewModel.homeUiState.value.isLoading) { "Expected isLoading to be false but was true" }
     }
 
     private fun fakeProducts() = listOf(
@@ -129,112 +158,3 @@ class HomeViewModelTest {
         ),
     )
 }
-
-// import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-// import kotlinx.coroutines.Dispatchers
-// import kotlinx.coroutines.ExperimentalCoroutinesApi
-// import kotlinx.coroutines.test.StandardTestDispatcher
-// import kotlinx.coroutines.test.advanceUntilIdle
-// import kotlinx.coroutines.test.resetMain
-// import kotlinx.coroutines.test.runTest
-// import kotlinx.coroutines.test.setMain
-// import org.junit.After
-// import org.junit.Before
-// import org.junit.Rule
-// import org.junit.Test
-// import org.mockito.Mockito.mock
-// import org.mockito.Mockito.`when`
-// import vibe.shopper.data.model.Chair
-// import vibe.shopper.data.model.ChairInfo
-// import vibe.shopper.data.model.Couch
-// import vibe.shopper.data.model.CouchInfo
-// import vibe.shopper.data.model.Price
-// import vibe.shopper.data.model.Success
-// import vibe.shopper.domain.GetProductsUseCase
-
-// @ExperimentalCoroutinesApi
-// class HomeViewModelTest {
-//
-//    @get:Rule
-//    val instantTaskExecutorRule = InstantTaskExecutorRule()
-//
-//    private val testDispatcher = StandardTestDispatcher()
-//
-//    @Mock
-//    private lateinit var getProductsUseCase: GetProductsUseCase
-//
-//    @Mock
-//    private lateinit var addToCartUseCase: AddToCartUseCase
-//
-//    private lateinit var homeViewModel: HomeViewModel
-//
-//    @Before
-//    fun setUp() {
-//        MockitoAnnotations.openMocks(this)
-//        homeViewModel = HomeViewModel(getProductsUseCase, addToCartUseCase)
-//    }
-//
-//    @Test
-//    fun testGetProductsSuccess() = runTest(testDispatcher) {
-//        val products = fakeProducts()
-//
-//        `when`(getProductsUseCase.getProducts()).thenReturn(Success(products))
-//
-//        homeViewModel.getProducts()
-// //        withContext(Dispatchers.Default) {
-// //            delay(2.seconds)
-// //        }
-//        runCurrent()
-//
-//        val uiState = homeViewModel.homeUiState.value
-//        println("UI State: $uiState")
-//        println("Expected Products: $products")
-//
-//        assert(uiState.products == products) { "Expected products to be $products but was ${uiState.products}" }
-//        assert(!uiState.isLoading) { "Expected isLoading to be false but was ${uiState.isLoading}" }
-//    }
-//
-//    @Test
-//    fun testGetProductsFailure() = runTest(testDispatcher) {
-//        `when`(getProductsUseCase.getProducts()).thenReturn(Failure(Exception("Error")))
-//
-//        homeViewModel.getProducts()
-//
-//        assert(homeViewModel.homeUiState.value.messageResId != null)
-//        assert(!homeViewModel.homeUiState.value.isLoading)
-//    }
-//
-//    @Test
-//    fun testAddProductToCart() = runTest(testDispatcher) {
-//        val productId = 1
-//
-//        homeViewModel.addProductToCart(productId)
-//
-//        verify(addToCartUseCase).addToCart(productId)
-//    }
-//
-//    private fun fakeProducts() = listOf(
-//        Chair(
-//            id = 1,
-//            name = "Henriksdal",
-//            price = Price(100.0, "kr"),
-//            type = "chair",
-//            imageUrl = "https://shop.static.ingka.ikea.com/PIAimages/0462849_PE608354_S4.JPG",
-//            info = ChairInfo(
-//                material = "wood",
-//                color = "black",
-//            ),
-//        ),
-//        Couch(
-//            id = 1,
-//            name = "Lidhult",
-//            price = Price(1035.0, "kr"),
-//            type = "couch",
-//            imageUrl = "https://shop.static.ingka.ikea.com/PIAimages/0667779_PE714073_S4.JPG",
-//            info = CouchInfo(
-//                numberOfSeats = 4,
-//                color = "beige",
-//            ),
-//        ),
-//    )
-// }
